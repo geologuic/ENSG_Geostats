@@ -146,3 +146,25 @@ Chaque notebook est **autonome** : il reconstruit le contexte nécessaire en ré
 ## Auteur
 
 Projet réalisé par **RAZIK OUMAYMA** — Master 2 Géologie Numérique, ENSG.
+
+## Bibliothèques, outils et sources d'inspiration
+
+Ce projet utilise le package **Python de gstlearn**, développé par MINES Paris – 
+PSL University, qui propose les principales méthodes de géostatistique 
+(variographie, krigeage, simulations, etc.).
+
+- Site officiel : https://gstlearn.org/
+- GitHub : https://github.com/gstlearn/gstlearn
+
+### Référence
+
+MINES Paris – PSL University. (2025). gstlearn/gstlearn: Release v1.9.0 (stable_1.9.0). 
+Zenodo. https://doi.org/10.5281/zenodo.13343742
+
+---
+
+Les widgets interactifs utilisés dans ce projet s'appuient sur le package 
+**ipywidgets**.
+
+- Jupyter Widgets Documentation (v8.1.8). 
+  https://ipywidgets.readthedocs.io/en/latest/index.html

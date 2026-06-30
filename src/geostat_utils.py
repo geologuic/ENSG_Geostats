@@ -110,5 +110,5 @@ def afficher_variogramme(vario, model, titre, variance, unite="km", chemin_fichi
     if chemin_fichier:
         plt.savefig(chemin_fichier, dpi=150, bbox_inches="tight")
     plt.show()
-    plt.close()  # ferme la figure pour éviter l'accumulation lors des appels répétés (widget)
+    plt.close()  
     print(model)

@@ -1,0 +1,20 @@
+# Fichiers techniques générés par Python
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Sauvegardes automatiques des notebooks Jupyter
+.ipynb_checkpoints/
+
+# Environnements virtuels Python
+venv/
+env/
+.venv/
+
+# Fichiers de configuration des éditeurs
+.vscode/
+.idea/
+
+# Fichiers système
+.DS_Store
+Thumbs.db

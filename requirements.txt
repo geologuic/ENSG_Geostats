@@ -1,0 +1,11 @@
+# Bibliothèques nécessaires pour exécuter le projet
+# Installation : pip install -r requirements.txt
+pandas>=3.0.0
+numpy>=2.4.1
+matplotlib>=3.10.8
+ipywidgets>=8.1.8
+gstlearn>=1.10.1
+
+# Pour exécuter les notebooks Jupyter
+jupyter
+notebook

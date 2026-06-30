@@ -20,7 +20,7 @@ Parcourir la chaîne géostatistique complète, de l'exploration des données ju
 
 ---
 
-## Données //
+## Données
 
 | Fichier (`data/`) | Volet | Description | Variable étudiée |
 |---|---|---|---|

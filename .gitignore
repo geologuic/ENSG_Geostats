@@ -7,6 +7,7 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Environnements virtuels Python
+STAGE-M2-ENSG-RAZIK-OUMAYMA/
 venv/
 env/
 .venv/
@@ -18,3 +19,6 @@ env/
 # Fichiers système
 .DS_Store
 Thumbs.db
+
+# Cache des tests unitaires (pytest)
+.pytest_cache/

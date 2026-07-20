@@ -1,35 +1,10 @@
-# Développement de notebooks Jupyter en Python pour l'enseignement de la géostatistique et l'estimation de ressources minérales
+# Développement de notebooks Jupyter pour l'enseignement de la géostatistique
 
-**Projet de Fin d'Études (stage)** — Master 2 **Géologie Numérique**, ENSG.
+**Projet de Fin d'Études (stage)** — Master 2 Géologie Numérique, ENSG.
 
-Ce dépôt correspond au **TD6** du projet : une série de notebooks pédagogiques reproduisant en **Python** (avec la bibliothèque **gstlearn**) un TD du module **
-« Traitement statistique, géostatistique et approche systèmes »** (ENSG 2A — S7), réalisé à l'origine dans le logiciel **SKUA-Gocad**.
+Ce dépôt reproduit en **Python** (`gstlearn`, `scikit-gstat`, `gstatsim`) les TD **TD5 à TD8** du module « Traitement statistique, géostatistique et approche systèmes » (ENSG 2A — S7), réalisés à l'origine sous **SKUA-Gocad**.
 
-Le travail est organisé en **deux volets**, qui suivent la même chaîne géostatistique sur des jeux de données différents :
-
-- **Volet Jura** — étude du **Plomb (Pb)** dans les sols (données 2D dispersées).
-- **Volet Or** — étude du **prix de l'or** et de variables `Values`, en 1D, en grille 2D et en nuage de points 2D.
-
----
-
-## Objectif
-
-Parcourir la chaîne géostatistique complète, de l'exploration des données jusqu'à l'estimation et la simulation :
-
-**Exploration → Anamorphose gaussienne → Variogramme → Krigeage & Simulation.**
-
----
-
-## Données
-
-| Fichier (`data/`) | Volet | Description | Variable étudiée |
-|---|---|---|---|
-| `juradata.csv` | Jura | 259 échantillons de sol 2D, coordonnées X/Y (km) | **Pb** (Plomb) en mg/kg |
-| `prix_or_1D.csv` | Or | Série **1D** de 4 174 valeurs le long de l'axe `MD` | **GoldPrice** ($/once) |
-| `image_2D_grille.csv` | Or | Grille image **2D** (Voxet 100×100 = 10 000 cellules) | **Values** |
-| `gold_2D_points.csv` | Or | Nuage de **274 points 2D** dispersés | **Values** (normalisée) |
-
-> `TD6_support_etudiant_2025.pptx` : support de cours d'origine (référence).
+**Chaîne géostatistique couverte** : Exploration (TD5) → Anamorphose gaussienne → Variogramme (TD6) → Krigeage & simulation (TD7) → Étude de cas pollution (TD8) → Comparaison Machine Learning → Simulation non-stationnaire.
 
 ---
 
@@ -38,133 +13,86 @@ Parcourir la chaîne géostatistique complète, de l'exploration des données ju
 ```
 TD6-GEOSTAT-PFE-GN-ENSG/
 ├── data/
-│   ├── juradata.csv                              
-│   ├── prix_or_1D.csv                            
-│   ├── image_2D_grille.csv                       
-│   ├── gold_2D_points.csv                        
-│   └── TD6_support_etudiant_2025.pptx            
+│   ├── juradata.csv                  # 259 points, Pb + 6 autres métaux, RockType/Landuse
+│   ├── JuraValidationData.csv        # 100 points de validation indépendants
+│   └── prix_or_1D.csv, image_2D_grille.csv, gold_2D_points.csv   (volet Or)
 ├── src/
-│   ├── geostat_utils.py                          (factorisation)
+│   ├── geostat_utils/                # package factorisé (io, variogram, kriging, simulation)
 │   └── notebooks/
-│       ├── jura/                                 # Volet Jura (Plomb)
-│       │   ├── 01_chargement_exploration.ipynb
-│       │   ├── 02_anamorphose_gaussienne.ipynb
-│       │   ├── 03_variogramme_modelisation.ipynb
-│       │   └── 04_krigeage_simulation.ipynb
-│       └── gold_td6/                             # Volet Or (3 exercices)
-│           ├── 01_exercice1_variogramme_1D.ipynb
-│           ├── 02_exercice2_variogramme_2D_grille.ipynb
-│           └── 03_exercice3_krigeage_simulation.ipynb
-├── outputs/
-│   └── gold/                                     # Figures PNG exportées par le volet Or
+│       ├── jura/                     # 01 à 06 (TD5 → TD8 + ML + non-stationnaire)
+│       └── gold_td6/                 # 3 exercices indépendants (TD6)
+├── tests/test_geostat_utils.py
 ├── requirements.txt
-├── .gitignore
 └── README.md
 ```
 
-### Le module `geostat_utils.py`
+### Package `geostat_utils`
 
-Pour éviter de répéter le même code (principe **DRY** — *Don't Repeat Yourself*), les fonctions communes aux **deux volets** sont **factorisées** dans un module Python unique, importé via :
-
-```python
-import geostat_utils as gutils
-```
-
-| Fonction | Rôle |
-|---|---|
-| `charger_donnees_jura(...)` | Charge le CSV Jura et convertit les coordonnées en km |
-| `creer_db_gstlearn(df, variables, noms_locators)` | Crée une base `Db` gstlearn depuis un DataFrame (générique : 1D ou 2D) |
-| `filtrer_valeurs_aberrantes(db, nom_colonne, seuil)` | Masque les valeurs au-dessus d'un seuil |
-| `preparer_db_gaussienne()` | Pipeline Jura : chargement + filtrage + anamorphose de Hermite (→ `Y.Pb`) |
-| `creer_grille(df, nx, ny)` | Crée la grille d'estimation (`DbGrid`) sur l'emprise des données |
-| `afficher_variogramme(vario, model, titre, variance, unite, chemin_fichier)` | Trace variogramme + modèle ; `unite` = "km"/"m", sauvegarde PNG optionnelle |
-
-> **Note d'import.** Les deux volets étant dans un sous-dossier de `src/notebooks/` (`jura/` ou `gold_td6/`), les notebooks remontent de deux niveaux pour atteindre le module : `sys.path.append(os.path.abspath(os.path.join("..", "..")))`. Le chargement des données Jura (`charger_donnees_jura`) reste robuste car il teste plusieurs chemins et un chemin absolu basé sur l'emplacement du module.
+Fonctions communes factorisées (`import geostat_utils as gutils`) :
+- **`io.py`** : chargement, création de `Db` gstlearn, filtrage, anamorphose gaussienne, grille, sauvegarde des résultats de krigeage
+- **`variogram.py`** : affichage et calage manuel interactif du variogramme
+- **`kriging.py`** : krigeage SK/OK/UK + widget de visualisation
+- **`simulation.py`** : simulation par bandes tournantes (TBS) + widgets de réalisations
 
 ---
 
-## Contenu des notebooks
+## Notebooks — Volet Jura (`src/notebooks/jura/`)
 
-### Volet Jura — `src/notebooks/jura/`
-
-| Notebook | Étape | Description |
+| # | TD | Contenu |
 |---|---|---|
-| **01** | Chargement & exploration | Lecture des données, carte spatiale et statistiques du Pb |
-| **02** | Anamorphose gaussienne | Filtrage des aberrants et transformation du Pb en variable gaussienne **Y.Pb** |
-| **03** | Variogramme & modélisation | Variogramme expérimental et ajustement du modèle **Nugget + Sphérique** |
-| **04** | Krigeage & simulation | Krigeage (SK, OK, UK) et simulations par **bandes tournantes** |
+| 01 | TD5 | Statistiques, anomalies, corrélations, régions (RockType/Landuse) |
+| 02 | TD6 | Filtrage des aberrants + anamorphose gaussienne ( `Pb `en` Y.Pb`) |
+| 03 | TD6 | Variogramme expérimental, modélisation, anisotropie |
+| 04 | TD7+TD8 | Krigeage (SK/OK/UK), simulation TBS, superficie polluée, RMSE validation |
+| 05 | TD8 (ext.) | Comparaison krigeage vs ML (Random Forest, XGBoost, CatBoost) |
+| 06 | Complément | Simulation SGS non-stationnaire (clustering par Landuse) |
 
-### Volet Or — `src/notebooks/gold_td6/`
-
-| Exercice | Données | Description |
-|---|---|---|
-| **01** | `prix_or_1D.csv` | Exploration et **variogramme 1D** du prix de l'or (GoldPrice) |
-| **02** | `image_2D_grille.csv` | **Variogramme 2D** sur grille image (Voxet) et anisotropie |
-| **03** | `gold_2D_points.csv` | **Variogramme 2D**, **krigeage** (SK, OK, UK) et **simulation TBS** sur nuage de points |
-
-> Les figures du volet Or sont exportées automatiquement dans `outputs/gold/`.
+**Volet Or** (`src/notebooks/gold_td6/`, TD6, 3 exercices indépendants) : variogramme 1D (prix de l'or), variogramme 2D sur grille image, krigeage/simulation sur nuage de points.
 
 ---
 
 ## Installation
 
-1. (Recommandé) Créer un environnement virtuel :
-   ```bash
-   python -m venv venv
-   venv\Scripts\activate      # Windows
-   # source venv/bin/activate # Linux / Mac
-   ```
+```bash
+python -m venv venv
+venv\Scripts\activate        # Windows
+pip install -r requirements.txt
+```
 
-2. Installer les bibliothèques nécessaires :
-   ```bash
-   pip install -r requirements.txt
-   ```
+> *note* : `numpy<2.0` obligatoire — `gstatsim` (notebook 06) est incompatible avec NumPy 2.x.
 
 ---
 
 ## Exécution
 
-- **Volet Jura** : lancer les notebooks **dans l'ordre** (01 >> 02 >> 03 >>04) depuis `src/notebooks/jura/`.
-- **Volet Or** : les 3 exercices sont **indépendants** et peuvent être lancés séparément depuis `src/notebooks/gold_td6/`.
-
-Chaque notebook est **autonome** : il reconstruit le contexte nécessaire en réutilisant le module `geostat_utils.py`. Il n'est donc pas obligatoire de garder les notebooks précédents ouverts.
-
-> Pour un affichage correct des **widgets interactifs** (variogramme manuel, cartes de krigeage), exécuter les cellules dans l'ordre et, en cas de besoin, relancer le kernel (**Restart & Run All**).
+- **Volet Jura** : lancer dans l'ordre 01 → 06 (le notebook 05 dépend de `rmse_krigeage.json`, généré par le notebook 04).
+- **Volet Or** : les 3 exercices sont indépendants.
 
 ---
 
-## Bibliothèques utilisées
+## Tests
 
-- **pandas** — chargement et manipulation des données
-- **numpy** — calculs numériques et statistiques
-- **matplotlib** — visualisation
-- **ipywidgets** — réglages interactifs (variogramme, cartes de krigeage)
-- **gstlearn** — analyses géostatistiques (variogramme, krigeage, simulation)
+```bash
+pytest tests/ -v
+```
+
+---
+
+## Bibliothèques principales
+
+pandas, numpy (`<2.0`), matplotlib, ipywidgets, **gstlearn** (géostatistique), **scikit-gstat** + **gstatsim** (notebook 06), **scikit-learn**, **xgboost**, **catboost** (notebook 05), pytest.
 
 ---
 
 ## Auteur
 
-Projet réalisé par **RAZIK OUMAYMA** — Master 2 Géologie Numérique, ENSG.
+**RAZIK OUMAYMA** — Master 2 Géologie Numérique, ENSG.
 
-## Bibliothèques, outils et sources d'inspiration
+## Sources principales
 
-Ce projet utilise le package **Python de gstlearn**, développé par MINES Paris – 
-PSL University, qui propose les principales méthodes de géostatistique 
-(variographie, krigeage, simulations, etc.).
-
-- Site officiel : https://gstlearn.org/
-- GitHub : https://github.com/gstlearn/gstlearn
-
-### Référence
-
-MINES Paris – PSL University. (2025). gstlearn/gstlearn: Release v1.9.0 (stable_1.9.0). 
-Zenodo. https://doi.org/10.5281/zenodo.13343742
-
----
-
-Les widgets interactifs utilisés dans ce projet s'appuient sur le package 
-**ipywidgets**.
-
-- Jupyter Widgets Documentation (v8.1.8). 
-  https://ipywidgets.readthedocs.io/en/latest/index.html
+- gstlearn — MINES Paris–PSL University (2025). Zenodo. https://doi.org/10.5281/zenodo.13343742
+- Jeu de données Jura — Goovaerts, P. (1997). *Geostatistics for Natural Resources Evaluation*. Oxford University Press.
+- RMSE — Chai, T., Draxler, R. R. (2014). *Geoscientific Model Development*, 7, 1247–1250. https://doi.org/10.5194/gmd-7-1247-2014
+- scikit-gstat — Mälicke, M. (2022). *Geoscientific Model Development*, 15(6), 2505–2532.
+- GStatSim — MacKie, E. et al. (2022). https://gatorglaciology.github.io/gstatsimbook/
+- scikit-learn — Pedregosa, F. et al. (2011). *Journal of Machine Learning Research*, 12, 2825–2830. https://scikit-learn.org/

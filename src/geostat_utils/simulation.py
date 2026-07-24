@@ -66,7 +66,7 @@ def creer_widget_realisations(dbout, dbin, prefixe, nom_variable, nb_simulations
 
     def afficher(numero):
         tous_les_noms = dbout.getAllNames()
-        candidats = [n for n in tous_les_noms if prefixe in n and n.endswith(f".S{numero}")]
+        candidats = [n for n in tous_les_noms if prefixe in n and n.endswith(f".{numero}")]
 
         if not candidats:
             print(f"Aucune colonne trouvée pour prefixe='{prefixe}', réalisation {numero}.")
@@ -89,10 +89,8 @@ def creer_widget_realisations(dbout, dbin, prefixe, nom_variable, nb_simulations
 
 def creer_widget_realisations_avec_seuil(dbout, dbin, prefixe, nom_variable, seuil,
                                           nb_simulations=NB_SIMULATIONS_DEFAUT,
-                                          cmap="jet", vmin=20, vmax=120):
-    """Comme `creer_widget_realisations`, mais affiche les valeurs en échelle brute
-    (mg/kg) et superpose le contour de la zone dépassant `seuil`.
-    """
+                                          cmap="jet", vmin=20, vmax=120,
+                                          dossier_sauvegarde=None):
     bornes = dbout.getExtremas()
     extent = [bornes[0][0], bornes[0][1], bornes[1][0], bornes[1][1]]
 
@@ -119,6 +117,10 @@ def creer_widget_realisations_avec_seuil(dbout, dbin, prefixe, nom_variable, seu
         ax.set_ylim(extent[2], extent[3])
         ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.08), ncol=1)
         plt.tight_layout()
+
+        if dossier_sauvegarde:
+            fig.savefig(f"{dossier_sauvegarde}/fig12_simulation{numero}_reel.png", dpi=150, bbox_inches="tight")
+
         plt.show()
 
     display(widgets.VBox([widget_realisation, interactive_output(afficher, {'numero': widget_realisation})]))
@@ -132,7 +134,7 @@ def ajouter_colonnes_reelles_simulation(dbout, prefixe, anam, nb_simulations=NB_
         nouveau_prefixe = f"{prefixe}_reel"
 
     for i in range(1, nb_simulations + 1):
-        valeurs_gauss = dbout.getColumn(f"{prefixe}.Y.Pb.S{i}")
+        valeurs_gauss = dbout.getColumn(f"{prefixe}.Y.Pb.{i}")
         valeurs_reel = np.array(anam.gaussianToRawVector(valeurs_gauss))
         dbout.setColumn(valeurs_reel, f"{nouveau_prefixe}.S{i}")
 

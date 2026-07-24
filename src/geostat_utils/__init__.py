@@ -29,6 +29,7 @@ from .io import (
     creer_grille,
     sauvegarder_resultats_krigeage,
     charger_resultats_krigeage,
+    sauvegarder_figure,
 )
 
 from .variogram import (
@@ -61,6 +62,7 @@ __all__ = [
     "creer_grille",
     "sauvegarder_resultats_krigeage",
     "charger_resultats_krigeage",
+    "sauvegarder_figure",
     "afficher_variogramme",
     "CalageVariogramme",
     "creer_widget_calage_variogramme",

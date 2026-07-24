@@ -15,6 +15,8 @@ import ipywidgets as widgets
 from ipywidgets import interactive_output
 from IPython.display import display
 
+from .io import sauvegarder_figure   # <-- import ajouté
+
 # ==========================================================================
 # Constantes par défaut
 # ==========================================================================
@@ -44,9 +46,9 @@ def afficher_variogramme(vario, model, titre, variance, unite="km", chemin_fichi
     plt.ylabel(r"$\gamma(h)$")
     plt.title(titre)
     if chemin_fichier:
-        plt.savefig(chemin_fichier, dpi=150, bbox_inches="tight")
+        sauvegarder_figure(chemin_fichier)
     plt.show()
-    plt.close()  # évite l'accumulation de figures lors des appels répétés (widget)
+    plt.close()
     print(model)
 
 

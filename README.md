@@ -1,4 +1,4 @@
-# Développement de notebooks Jupyter pour l'enseignement de la géostatistique
+# Développement de notebooks Jupyter en Python pour l’enseignement de la géostatistique et l’estimation de ressources minérales
 
 **Projet de Fin d'Études (stage)** — Master 2 Géologie Numérique, ENSG.
 
@@ -95,4 +95,6 @@ pandas, numpy (`<2.0`), matplotlib, ipywidgets, **gstlearn** (géostatistique), 
 - RMSE — Chai, T., Draxler, R. R. (2014). *Geoscientific Model Development*, 7, 1247–1250. https://doi.org/10.5194/gmd-7-1247-2014
 - scikit-gstat — Mälicke, M. (2022). *Geoscientific Model Development*, 15(6), 2505–2532.
 - GStatSim — MacKie, E. et al. (2022). https://gatorglaciology.github.io/gstatsimbook/
-- scikit-learn — Pedregosa, F. et al. (2011). *Journal of Machine Learning Research*, 12, 2825–2830. https://scikit-learn.org/
+- scikit-learn (exemple ColumnTransformer) — The scikit-learn developers. *Column Transformer with Mixed Types*. https://scikit-learn.org/stable/auto_examples/compose/plot_column_transformer_mixed_types.html
+- pandas — Documentation de manipulation de données tabulaires (chargement, filtrage, jointures des jeux de données Jura). https://pandas.pydata.org/docs/getting_started/comparison/comparison_with_sql.html
+- matplotlib — Documentation des raccourcis de mise en forme utilisés pour l'ensemble des figures du rapport. https://matplotlib.org/stable/tutorials/coding_shortcuts.html

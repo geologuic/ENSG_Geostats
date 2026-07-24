@@ -16,6 +16,7 @@ import os
 import pandas as pd
 import numpy as np
 import gstlearn as gl
+import matplotlib.pyplot as plt
 import json
 
 # ==========================================================================
@@ -317,5 +318,12 @@ def charger_resultats_krigeage(chemin="../../../data/rmse_krigeage.json"):
     try:
         with open(chemin) as f:
             return json.load(f)
-    except FileNotFoundError:
+    except FileNotFoundError:      
         return None
+
+
+def sauvegarder_figure(nom_fichier, dossier="../../../outputs/jura"):
+    """Sauvegarde l'image affichée dans le dossier outputs/jura du projet."""
+    os.makedirs(dossier, exist_ok=True)
+    plt.savefig(f"{dossier}/{nom_fichier}", dpi=150, bbox_inches="tight")
+   

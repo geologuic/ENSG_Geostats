@@ -3,7 +3,8 @@
 
 # ---- Calcul scientifique et données ----
 pandas>=3.0.3
-numpy>=1.24.0,<2.0        
+# numpy>=1.24.0, <2.0
+numpy>=1.24.0
 matplotlib>=3.11.0
 ipywidgets>=8.1.8
 

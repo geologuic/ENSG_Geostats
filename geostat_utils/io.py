@@ -2,7 +2,8 @@
 geostat_utils.io
 =================
 
-Auteur : RAZIK OUMAYMA — PFE ENSG 2025-2026
+Auteur: Oumayma Razik — PFE ENSG 2025-2026
+Révisions: Guilaume Caumon.
 
 Fonctions liées à l'entrée/sortie et à la préparation des données :
 - chargement de fichiers CSV (générique + wrapper spécifique Jura pour compatibilité)
@@ -12,9 +13,11 @@ Fonctions liées à l'entrée/sortie et à la préparation des données :
 - création d'une grille d'estimation
 """
 
-import os
+from pathlib import Path
+from typing import *
+import re
+
 import pandas as pd
-import numpy as np
 import gstlearn as gl
 import matplotlib.pyplot as plt
 import json
@@ -26,11 +29,46 @@ import json
 SEUIL_ABERRANT_PB_DEFAUT = 132    # seuil (mg/kg) au-delà duquel une valeur de Pb est jugée aberrante
 NB_POLYNOMES_HERMITE_DEFAUT = 25  # nombre de polynômes de Hermite pour l'anamorphose gaussienne
 
+class ResultsDir:
+    _shared_state = {}
+    def __init__(self, output_dir: str):
+        self.__dict__ = self._shared_state  # Share state across instances
+        if not hasattr(self, "_output_dir"):  # Initialize only once
+            self._output_dir = Path(output_dir).absolute()
+            self._output_dir.mkdir(parents=True, exist_ok=True)
+
+    def save_fig(self, name: str, *args: Any, **kwargs: Any) -> None:
+        """Save a matplotlib figure to the output directory.
+
+        Args:
+            name: Filename (e.g., "plot.png").
+            *args: Additional positional arguments for `plt.savefig`.
+            **kwargs: Additional keyword arguments for `plt.savefig` (e.g., dpi=300).
+        """
+        if not re.match(r'^[\w\-.]+$', name):
+            raise ValueError(f"Invalid filename: {name}")
+        filepath = self._output_dir / name
+        plt.savefig(filepath, *args, **kwargs)
+
+    def save_data(self, data: Any, name: str, **kwargs: Any) -> None:
+        """Save data to a file (e.g., CSV, JSON, pickle)."""
+        if not re.match(r'^[\w\-.]+$', name):
+            raise ValueError(f"Invalid filename: {name}")
+        filepath = self._output_dir / name
+        if name.endswith('.csv'):
+            pd.DataFrame(data).to_csv(filepath, **kwargs)
+        elif name.endswith('.json'):
+            import json
+            with open(filepath, 'w') as f:
+                json.dump(data, f, **kwargs)
+        else:
+            raise ValueError(f"Unsupported file format: {name}")
+
 # ==========================================================================
 # Chargement des données
 # ==========================================================================
 
-def charger_donnees(chemin_fichier, chemins_alternatifs=None, colonnes_km=None, separateur=";"):
+def charger_donnees(chemin_fichier: Path, chemins_alternatifs: Path=None, colonnes_km=None, separateur=";"):
     """Charge un fichier CSV en testant plusieurs chemins possibles, et convertit
     optionnellement certaines colonnes de mètres en kilomètres.
 
@@ -54,7 +92,7 @@ def charger_donnees(chemin_fichier, chemins_alternatifs=None, colonnes_km=None, 
     chemins_a_tester = [chemin_fichier] + (chemins_alternatifs or [])
 
     for chemin in chemins_a_tester:
-        if chemin and os.path.exists(chemin):
+        if chemin.exists():
             donnees = pd.read_csv(chemin, sep=separateur)
             if colonnes_km:
                 for colonne in colonnes_km:
@@ -67,7 +105,7 @@ def charger_donnees(chemin_fichier, chemins_alternatifs=None, colonnes_km=None, 
 def charger_donnees_jura(chemin_fichier="../../data/juradata.csv"):
     """Wrapper de compatibilité : charge le jeu de données Jura.
 
-    NOTE (mise à jour) : le fichier `juradata.csv` corrigé contient déjà les
+    NOTE : le fichier `juradata.csv` corrigé contient déjà les
     coordonnées X et Y en kilomètres (ex. X=2.386, Y=3.077). Aucune conversion
     mètres -> km n'est donc appliquée ici (`colonnes_km=None`). Si un jour vous
     repassez à une source de données en mètres, remettez `colonnes_km=["X", "Y"]`.
@@ -76,15 +114,15 @@ def charger_donnees_jura(chemin_fichier="../../data/juradata.csv"):
     En interne, s'appuie sur la fonction générique `charger_donnees`.
     """
     chemins_alternatifs = [
-        os.path.join("..", "..", "data", "juradata.csv"),
-        os.path.join("..", "..", "..", "data", "juradata.csv"),  # depuis src/notebooks/jura/
-        os.path.join("data", "juradata.csv"),
-        os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "juradata.csv")),
+        Path("..")/".."/"data"/"juradata.csv",
+        Path("..")/".."/".."/"data"/"juradata.csv",  # depuis src/notebooks/jura/
+        Path("data")/ "juradata.csv",
+        Path(__file__)/".."/".."/"data"/"juradata.csv",
     ]
     return charger_donnees(
         chemin_fichier,
         chemins_alternatifs=chemins_alternatifs,
-        colonnes_km=None,  # déjà en km dans le fichier corrigé -> pas de conversion
+        colonnes_km=None,  # ["X", "Y"] déjà en km dans le fichier corrigé -> pas de conversion
         separateur=";",
     )
 
@@ -322,8 +360,4 @@ def charger_resultats_krigeage(chemin="../../../data/rmse_krigeage.json"):
         return None
 
 
-def sauvegarder_figure(nom_fichier, dossier="../../../outputs/jura"):
-    """Sauvegarde l'image affichée dans le dossier outputs/jura du projet."""
-    os.makedirs(dossier, exist_ok=True)
-    plt.savefig(f"{dossier}/{nom_fichier}", dpi=150, bbox_inches="tight")
    

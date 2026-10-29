@@ -12,10 +12,11 @@ import matplotlib.pyplot as plt
 import gstlearn as gl
 import gstlearn.plot as gp
 import ipywidgets as widgets
+import numpy as np
 from ipywidgets import interactive_output
 from IPython.display import display
 
-from .io import sauvegarder_figure   # <-- import ajouté
+from .io import ResultsDir
 
 # ==========================================================================
 # Constantes par défaut
@@ -29,6 +30,42 @@ VALEURS_DEFAUT_MODELES = {
 PORTEE_MIN_DEFAUT = 0.1
 PORTEE_MAX_DEFAUT = 3.0
 NUGGET_MAX_DEFAUT = 0.5
+
+def plot_1D_variogram(variogram, title: str = None, frequency_as_histogram = True):
+    gp.varmod(variogram, showPairs=False, flagDrawVariance=True)
+    plt.title('Variogramme expérimental' if title is None else title)
+
+    ax1 = plt.gca()
+    ax1.set_ylabel(r"$\gamma(h)$")
+    if frequency_as_histogram:
+        frequencies = variogram.getAllSw(0)  # Number of pairs per lag
+        lag_centers = variogram.getAllHh(0)  # Mean distance per lag
+
+        ax2 = ax1.twinx()  # Create a shared X, separate Y-axis
+        ax2.set_ylabel("Nombre de paires")
+        max_freq = max(frequencies)
+        ax2.set_ylim(0, max_freq / 0.3)
+
+        # Plot the Lag Frequencies as a bar chart histogram on the lower subplot (ax2)
+        # We calculate a dynamic width based on the distance between the first two lags
+        widths = np.zeros_like(lag_centers)
+        if len(lag_centers) > 1:
+            widths[0] = lag_centers[1] - lag_centers[0]
+            widths[-1] = lag_centers[-1] - lag_centers[-2]
+            widths[1:-1] = (lag_centers[2:] - lag_centers[:-2]) / 2
+        ax2.bar(
+            lag_centers,
+            frequencies,
+            width=widths,
+            color='gray',
+            edgecolor='black',
+            alpha=0.25,
+            label="Nombre de paires"
+        )
+    results = ResultsDir('dummy')
+    results.save_fig('01_variogramme_exp.png', bbox_inches="tight")
+    plt.show()
+
 
 def afficher_variogramme(vario, model, titre, variance, unite="km", chemin_fichier=None):
     """Trace le variogramme expérimental et le modèle ajusté avec gstlearn.plot.
@@ -46,7 +83,7 @@ def afficher_variogramme(vario, model, titre, variance, unite="km", chemin_fichi
     plt.ylabel(r"$\gamma(h)$")
     plt.title(titre)
     if chemin_fichier:
-        sauvegarder_figure(chemin_fichier)
+        ResultsDir.save_fig(chemin_fichier)
     plt.show()
     plt.close()
     print(model)

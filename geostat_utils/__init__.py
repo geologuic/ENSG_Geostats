@@ -33,10 +33,7 @@ from .io import (
 
 from .variogram import (
     plot_1D_variogram,
-    afficher_variogramme,
-    CalageVariogramme,
-    creer_widget_calage_variogramme,
-    VALEURS_DEFAUT_MODELES,
+    InteractiveVariogramFit
 )
 
 from .kriging import (

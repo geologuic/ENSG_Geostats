@@ -3,6 +3,7 @@ geostat_utils.variogram
 ========================
 
 Auteur : RAZIK OUMAYMA — PFE ENSG 2025-2026
+Revision: Guillaume Caumon
 
 Fonctions liées au variogramme expérimental, à son affichage, et à son
 calage manuel interactif (widget).
@@ -13,8 +14,6 @@ import gstlearn as gl
 import gstlearn.plot as gp
 import ipywidgets as widgets
 import numpy as np
-from ipywidgets import interactive_output
-from IPython.display import display
 
 from .io import ResultsDir
 
@@ -22,17 +21,26 @@ from .io import ResultsDir
 # Constantes par défaut
 # ==========================================================================
 
-VALEURS_DEFAUT_MODELES = {
-    'Spherique':   (0.21, 0.60),
-    'Exponentiel': (0.15, 0.86),
-    'Gaussien':    (0.15, 0.70),
-}
-PORTEE_MIN_DEFAUT = 0.1
-PORTEE_MAX_DEFAUT = 3.0
-NUGGET_MAX_DEFAUT = 0.5
+def compute_lag_widths(lag_centers: np.ndarray) -> np.ndarray:
+    widths = np.zeros_like(lag_centers)
+    if len(lag_centers) > 1:
+        widths[0] = lag_centers[1] - lag_centers[0]
+        widths[-1] = lag_centers[-1] - lag_centers[-2]
+        widths[1:-1] = (lag_centers[2:] - lag_centers[:-2]) / 2
+    else:
+        raise(NotImplementedError("Cannot display histogram with just one lag"))
+    return widths
 
-def plot_1D_variogram(variogram, title: str = None, frequency_as_histogram = True):
-    gp.varmod(variogram, showPairs=False, flagDrawVariance=True)
+def plot_1D_variogram(variogram: gl.Vario, title: str = None, filename = None, model = None, frequency_as_histogram = True) -> None:
+    """
+    :param variogram: The gstlearn empirical variogram
+    :param title: The title of the figure
+    :param filename: The filename to save the figure to a png file (not saved if None)
+    :param model: The variogram model to display
+    :param frequency_as_histogram: Specifies whether to display the number of pairs for each variogram point as a histogram
+    :return: None
+    """
+    gp.varmod(variogram, model, showPairs=False, flagDrawVariance=True)
     plt.title('Variogramme expérimental' if title is None else title)
 
     ax1 = plt.gca()
@@ -42,143 +50,117 @@ def plot_1D_variogram(variogram, title: str = None, frequency_as_histogram = Tru
         lag_centers = variogram.getAllHh(0)  # Mean distance per lag
 
         ax2 = ax1.twinx()  # Create a shared X, separate Y-axis
-        ax2.set_ylabel("Nombre de paires")
+        ax2.set_ylabel("Nombre de paires", color="blue")
+        ax2.tick_params(axis='y', colors='blue')
         max_freq = max(frequencies)
-        ax2.set_ylim(0, max_freq / 0.3)
+        ax2.set_ylim(0.0, float(max_freq/0.3))
 
-        # Plot the Lag Frequencies as a bar chart histogram on the lower subplot (ax2)
-        # We calculate a dynamic width based on the distance between the first two lags
-        widths = np.zeros_like(lag_centers)
-        if len(lag_centers) > 1:
-            widths[0] = lag_centers[1] - lag_centers[0]
-            widths[-1] = lag_centers[-1] - lag_centers[-2]
-            widths[1:-1] = (lag_centers[2:] - lag_centers[:-2]) / 2
+        widths = compute_lag_widths(lag_centers)
+
         ax2.bar(
             lag_centers,
             frequencies,
             width=widths,
-            color='gray',
+            color='blue',
             edgecolor='black',
-            alpha=0.25,
+            alpha=0.5,
             label="Nombre de paires"
         )
     results = ResultsDir('dummy')
-    results.save_fig('01_variogramme_exp.png', bbox_inches="tight")
+    if filename is not None:
+        results.save_fig(f"{filename}.png", bbox_inches="tight")
     plt.show()
 
+class InteractiveVariogramFit:
+    """Interactive widget for manual variogram modeling
 
-def afficher_variogramme(vario, model, titre, variance, unite="km", chemin_fichier=None):
-    """Trace le variogramme expérimental et le modèle ajusté avec gstlearn.plot.
-
-    Paramètres
-    ----------
-    unite : str
-        Unité de distance affichée en abscisse ("km" en 2D, "m" pour le 1D GoldPrice).
-    chemin_fichier : str ou None
-        Si fourni, chemin complet où enregistrer la figure au format PNG.
-    """
-    ax = gp.varmod(vario, model, showPairs=True)
-    ax.set_ylim(0, variance * 2)
-    plt.xlabel(f"Distance ({unite})")
-    plt.ylabel(r"$\gamma(h)$")
-    plt.title(titre)
-    if chemin_fichier:
-        ResultsDir.save_fig(chemin_fichier)
-    plt.show()
-    plt.close()
-    print(model)
-
-
-# ==========================================================================
-# Calage manuel interactif du variogramme (widget)
-# ==========================================================================
-
-TYPES_COVARIOGRAMMES = {
-    'Spherique':   gl.ECov.SPHERICAL,
-    'Exponentiel': gl.ECov.EXPONENTIAL,
-    'Gaussien':    gl.ECov.GAUSSIAN,
-}
-
-
-class CalageVariogramme:
-    """Widget interactif de calage manuel d'un modèle de variogramme
-    (Nugget + Sphérique/Exponentiel/Gaussien).
-
-    Après interaction de l'utilisateur avec les curseurs, le modèle courant est
-    accessible via l'attribut `.model`.
+    The initial value is chosen as half the maximum lag, 0 nugget and sill equal to the variance
+    The user can change parameter values, then the model is available as self.model.
     """
 
-    def __init__(self, vario, variance, valeurs_defaut=None, facteur_correction=1.0,
-                 unite="km", chemin_sortie=None, portee_min=PORTEE_MIN_DEFAUT, portee_max=PORTEE_MAX_DEFAUT,
-                 nugget_max=NUGGET_MAX_DEFAUT):
+    def __init__(self, vario: gl.Vario, unit: str = "m"):
         self.vario = vario
-        self.variance = variance
-        self.facteur_correction = facteur_correction
-        self.unite = unite
-        self.chemin_sortie = chemin_sortie
-        self._afficher_variogramme = afficher_variogramme
+        self.default_type = 'Spherique'
+        self.variance = vario.getVar(0, 0)
+        self.total_sill = self.variance
+        self.default_range = 0.5 * vario.getNLag(0) * vario.getDPas(0)
+        self.default_nugget = 0.
+        self.unit = unit
+        self.max_possible_range = self.default_range * 4
+        self.max_possible_sill = self.variance * 2
 
-        self.valeurs_defaut = valeurs_defaut or VALEURS_DEFAUT_MODELES
+    def interactive_variogram_plot(
+            self,
+            model_type: str,
+            vario_range: float,
+            nugget: float,
+            sill: float
+    ) -> None:
+        """
+        Renders an interactive 1D geostatistical variogram model
 
-        modele_initial = list(self.valeurs_defaut.keys())[0]
-        nugget_initial, portee_initiale = self.valeurs_defaut[modele_initial]
+        Generates a continuous spatial variogram model using ``gstlearn``
+        on top of an experimental variogram.
 
-        self.widget_modele = widgets.Dropdown(
-            options=list(self.valeurs_defaut.keys()),
-            value=modele_initial,
-            description='Modèle :'
+        :param model_type: The variogram model type, among 'Spherical', 'Exponential', 'Gaussian', 'Cubic'.
+        :param range: The correlation range (distance beyond whith there is no correlation).
+        :param nugget: The measurement error or discontinuity at 0 (nugget effect), in % of the variance.
+        :param sill: The sill of the variogram, theoretically equal to the variance.
+
+        :return: None. Outputs an interactive, dual-axis Matplotlib canvas directly into the cell frame.
+
+        :raises KeyError: If the supplied ``model_type`` string fails to map to an active ``gl.ECov`` definition.
+        """
+        types_cov: dict[str, gl.ECov] = {
+            "Spherical": gl.ECov.SPHERICAL,
+            "Exponential": gl.ECov.EXPONENTIAL,
+            "Gaussian": gl.ECov.GAUSSIAN,
+            "Cubic": gl.ECov.CUBIC
+        }
+        selected_type: gl.ECov = types_cov[model_type]
+        self.total_sill = sill
+
+        model: gl.Model = gl.Model()
+        # Get widget values
+        if nugget > 0.0:
+            true_nugget = self.variance * nugget
+            model.addCovFromParam(type=gl.ECov.NUGGET, sill=true_nugget)
+        model.addCovFromParam(type=selected_type, sill=self.total_sill * (1. - nugget), range=vario_range)
+
+        self.model = model
+
+        plot_1D_variogram(self.vario, "Interactive variogram fitting", model=model, frequency_as_histogram=True)
+
+    def interact(self):
+        """
+        Creates the interactive widget
+        """
+        widgets.interact(
+            self.interactive_variogram_plot,
+            model_type=widgets.Dropdown(
+                options=["Spherical", "Exponential", "Gaussian", "Cubic"],
+                value="Spherical",
+                description="Modèle:"
+            ),
+            vario_range=widgets.FloatSlider(
+                min=0.01,
+                max=self.max_possible_range,
+                step=self.max_possible_range / 100.0,
+                value=self.default_range,
+                description="Portée (Range):"
+            ),
+            nugget=widgets.FloatSlider(
+                min=0.0,
+                max=1,
+                step=0.01,
+                value=0.0,
+                description="Nugget ($C_0$), in % of the sill:"
+            ),
+            sill=widgets.FloatSlider(
+                min=0.0,
+                max=self.max_possible_sill,
+                step=self.variance / 100.0,
+                value=self.variance,
+                description="Palier (Sill):"
+            )
         )
-        self.widget_nugget = widgets.FloatSlider(
-            value=nugget_initial, min=0.0, max=nugget_max,
-            step=0.01, description='Nugget :'
-        )
-        self.widget_portee = widgets.FloatSlider(
-            value=portee_initiale, min=portee_min, max=portee_max,
-            step=0.01, description=f'Portée ({unite}) :'
-        )
-
-        def _update_defauts(change):
-            self.widget_nugget.value, self.widget_portee.value = self.valeurs_defaut[change['new']]
-        self.widget_modele.observe(_update_defauts, names='value')
-
-        self.model = gl.Model()
-
-    def _reglage(self, modele, nugget, portee):
-        self.model = gl.Model()
-        self.model.addCovFromParam(
-            gl.ECov.NUGGET,
-            sill=nugget * self.facteur_correction
-        )
-        self.model.addCovFromParam(
-            TYPES_COVARIOGRAMMES[modele],
-            range=portee,
-            sill=(1 - nugget) * self.facteur_correction
-        )
-        chemin = f"{self.chemin_sortie}/calage_{modele}.png" if self.chemin_sortie else None
-        self._afficher_variogramme(
-            self.vario, self.model,
-            f"Modèle ajusté manuellement — Nugget + {modele}",
-            self.variance, unite=self.unite, chemin_fichier=chemin
-        )
-
-    def afficher(self):
-        """Affiche le widget (dropdown + curseurs + graphique interactif)."""
-        display(widgets.VBox([
-            self.widget_modele,
-            self.widget_nugget,
-            self.widget_portee,
-            interactive_output(self._reglage, {
-                'modele': self.widget_modele,
-                'nugget': self.widget_nugget,
-                'portee': self.widget_portee,
-            })
-        ]))
-
-def creer_widget_calage_variogramme(vario, variance, **kwargs):
-    """Crée et affiche directement un widget de calage manuel.
-    Retourne l'objet `CalageVariogramme` (accès au modèle courant via `.model`
-    une fois que l'utilisateur a interagi avec les curseurs).
-    """
-    calage = CalageVariogramme(vario, variance, **kwargs)
-    calage.afficher()
-    return calage

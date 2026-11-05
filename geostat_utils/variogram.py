@@ -46,7 +46,7 @@ def plot_1D_variogram(variogram: gl.Vario, title: str = None, filename = None, m
     :param scale_freq_width:
     :return: None
     """
-    gp.varmod(variogram, model, showPairs=True, flagDrawVariance=True)
+    gp.varmod(variogram, model, showPairs=False, flagDrawVariance=True)
     plt.title('Variogramme expérimental' if title is None else title)
 
     ax1 = plt.gca()

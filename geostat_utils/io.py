@@ -129,43 +129,29 @@ def charger_donnees_jura(chemin_fichier="../../data/juradata.csv"):
 # ==========================================================================
 # Création de la base de données gstlearn
 # ==========================================================================
-def creer_db_gstlearn(df, variables=None, noms_locators=None):
+def create_gstlearn_db(df: pd.DataFrame, variables: list[str]|None = None, locators: list[str]|None = None)->gl.Db:
     """Crée un objet Db de gstlearn à partir d'un tableau pandas (DataFrame).
 
     Les "locators" indiquent le rôle de chaque colonne :
     x1, x2 (...) = coordonnées ; z1 = variable étudiée.
     Fonctionne aussi bien en 1D (ex. GoldPrice) qu'en 2D (Jura, Gold 2D).
 
-    Paramètres
-    ----------
-    df : pandas.DataFrame
-        Tableau contenant au moins les colonnes listées dans `variables`.
-    variables : list[str] ou None
-        Colonnes de `df` à utiliser, dans l'ordre. Par défaut : jeu Jura ["X","Y","Pb"].
-    noms_locators : list[str] ou None
-        Locators gstlearn associés à `variables`, même ordre/longueur.
-        Par défaut : ["x1", "x2", "z1"] (2 coordonnées + 1 variable).
+    :param df: DataFrame contenant au moins les colonnes listées dans `variables`.
+    :param variables: Colonnes de `df` à utiliser, dans l'ordre.
+    :param locators: Locators gstlearn indiquant les variables d'espace et les variables géostatistiques
 
-    Retourne
-    --------
-    gl.Db
-        Base de données gstlearn prête à l'emploi (coordonnées + variable étudiée).
-
-    Lève
-    ----
-    ValueError
-        Si `variables` et `noms_locators` n'ont pas la même longueur.
+    :raise ValueError: Si `variables` et `noms_locators` n'ont pas la même longueur.
     """
     # On évite les listes en valeur par défaut (mutable default argument) :
     # elles sont construites ici, dans le corps de la fonction.
     if variables is None:
         variables = ["X", "Y", "Pb"]
-    if noms_locators is None:
-        noms_locators = ["x1", "x2", "z1"]
-    if len(variables) != len(noms_locators):
+    if locators is None:
+        locators = ["x1", "x2", "z1"]
+    if len(variables) != len(locators):
         raise ValueError(
-            f"`variables` ({len(variables)} éléments) et `noms_locators` "
-            f"({len(noms_locators)} éléments) doivent avoir la même longueur."
+            f"`variables` ({len(variables)} éléments) et `locators` "
+            f"({len(locators)} éléments) doivent avoir la même longueur."
         )
 
     donnees = df[variables].to_numpy()

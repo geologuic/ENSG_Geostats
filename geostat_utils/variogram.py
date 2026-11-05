@@ -22,25 +22,31 @@ from .io import ResultsDir
 # ==========================================================================
 
 def compute_lag_widths(lag_centers: np.ndarray) -> np.ndarray:
+    """Estimate lag widths for from centers.
+    :param lag_centers: 1D array of interval centers in ascending order.
+    """
     widths = np.zeros_like(lag_centers)
     if len(lag_centers) > 1:
         widths[0] = lag_centers[1] - lag_centers[0]
         widths[-1] = lag_centers[-1] - lag_centers[-2]
         widths[1:-1] = (lag_centers[2:] - lag_centers[:-2]) / 2
     else:
-        raise(NotImplementedError("Cannot display histogram with just one lag"))
+        raise(NotImplementedError("Not enough lags to display $N(h)$"))
     return widths
 
-def plot_1D_variogram(variogram: gl.Vario, title: str = None, filename = None, model = None, frequency_as_histogram = True) -> None:
+
+def plot_1D_variogram(variogram: gl.Vario, title: str = None, filename = None, model = None,
+                      frequency_as_histogram = True, scale_freq_width:float = 0.6) -> None:
     """
     :param variogram: The gstlearn empirical variogram
     :param title: The title of the figure
     :param filename: The filename to save the figure to a png file (not saved if None)
     :param model: The variogram model to display
     :param frequency_as_histogram: Specifies whether to display the number of pairs for each variogram point as a histogram
+    :param scale_freq_width:
     :return: None
     """
-    gp.varmod(variogram, model, showPairs=False, flagDrawVariance=True)
+    gp.varmod(variogram, model, showPairs=True, flagDrawVariance=True)
     plt.title('Variogramme expérimental' if title is None else title)
 
     ax1 = plt.gca()
@@ -55,7 +61,7 @@ def plot_1D_variogram(variogram: gl.Vario, title: str = None, filename = None, m
         max_freq = max(frequencies)
         ax2.set_ylim(0.0, float(max_freq/0.3))
 
-        widths = compute_lag_widths(lag_centers)
+        widths = compute_lag_widths(lag_centers) * scale_freq_width
 
         ax2.bar(
             lag_centers,
@@ -72,7 +78,7 @@ def plot_1D_variogram(variogram: gl.Vario, title: str = None, filename = None, m
     plt.show()
 
 class InteractiveVariogramFit:
-    """Interactive widget for manual variogram modeling
+    """Interactive widget for manual isotropic variogram modeling
 
     The initial value is chosen as half the maximum lag, 0 nugget and sill equal to the variance
     The user can change parameter values, then the model is available as self.model.

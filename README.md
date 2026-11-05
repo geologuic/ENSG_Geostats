@@ -1,27 +1,47 @@
-# Développement de notebooks Jupyter en Python pour l’enseignement de la géostatistique et l’estimation de ressources minérales
+# Notebooks Jupyter en Python pour le cours de Géostatistique ENSG
 
-**Projet de Fin d'Études (stage)** — Master 2 Géologie Numérique, ENSG.
+*Auteurs: Oumayma Razik, Guillaume Caumon*
 
-Ce dépôt reproduit en **Python** (`gstlearn`, `scikit-gstat`, `gstatsim`) les TD **TD5 à TD8** du module « Traitement statistique, géostatistique et approche systèmes » (ENSG 2A — S7), réalisés à l'origine sous **SKUA-Gocad**.
+Ce dépôt propose des exercices pour les TDs de 2eme année à l'ENSG en géostatistique. 
+Il s'appuie sur la bibliothèque [gstlearn](https://gstlearn.org/). Il complémente les TDs existants sur AspenSKUA.
 
-**Chaîne géostatistique couverte** : Exploration (TD5) → Anamorphose gaussienne → Variogramme (TD6) → Krigeage & simulation (TD7) → Étude de cas pollution (TD8) → Comparaison Machine Learning → Simulation non-stationnaire.
+## Installation
 
----
+Il est recommandé de créer un environnement virtuel python incluant les dépendances. 
+
+Pour cela lancer PyCharm, puis ouvrir le répertoire courant. Aller dans `Setting.. > Python > Interpreter`, puis sélectionner 
+`Add Interpreter > Add Local Interpreter`. Une boîte de dialogue s'ouvre. 
+Il faut générer un nouvel environnement (`Generate New`), de type `uv` (le plus rapide), et choisir le répertoire courant. 
+Puis, ouvrir un terminal et lancer 
+```
+uv pip install -r requirements.txt
+```
+ 
+
+Cela peut se également se faire sous Linux ou Windows en ligne de commande: 
+
+```
+uv venv                     # Ou: python -m venv .venv
+.venv\Scripts\activate      # Windows
+uv pip install -r requirements.txt
+jupyter-notebook.exe 
+```
+
+## TD6
+
+ - [Calcul de variogramme en 1D](TD06Geostat/01_variogramme1D.ipynb)
+ - [Calcul de variogramme en 2D](TD06Geostat/02_variogramme2D.ipynb)
 
 ## Structure du projet
 
 ```
 TD6-GEOSTAT-PFE-GN-ENSG/
-├── data/
-│   ├── juradata.csv                  # 259 points, Pb + 6 autres métaux, RockType/Landuse
-│   ├── JuraValidationData.csv        # 100 points de validation indépendants
-│   └── prix_or_1D.csv, image_2D_grille.csv, gold_2D_points.csv   (volet Or)
-├── src/
-│   ├── geostat_utils/                # package factorisé (io, variogram, kriging, simulation)
-│   └── notebooks/
-│       ├── jura/                     # 01 à 06 (TD5 → TD8 + ML + non-stationnaire)
-│       └── gold_td6/                 # 3 exercices indépendants (TD6)
-├── tests/test_geostat_utils.py
+├── data/                       # Les fichiers de données
+├── geostat_utils/              # package d'utilitaires python (io, variogram, kriging, simulation)
+├── start.ipynb                 # Le Notebook de démarrage
+├── TD*/
+│    └── *.ipynb                # Notebooks python pour les TDs
+├── tests/test_geostat_utils.py # Tests
 ├── requirements.txt
 └── README.md
 ```
@@ -36,39 +56,6 @@ Fonctions communes factorisées (`import geostat_utils as gutils`) :
 
 ---
 
-## Notebooks — Volet Jura (`src/notebooks/jura/`)
-
-| # | TD | Contenu |
-|---|---|---|
-| 01 | TD5 | Statistiques, anomalies, corrélations, régions (RockType/Landuse) |
-| 02 | TD6 | Filtrage des aberrants + anamorphose gaussienne ( `Pb `en` Y.Pb`) |
-| 03 | TD6 | Variogramme expérimental, modélisation, anisotropie |
-| 04 | TD7+TD8 | Krigeage (SK/OK/UK), simulation TBS, superficie polluée, RMSE validation |
-| 05 | TD8 (ext.) | Comparaison krigeage vs ML (Random Forest, XGBoost, CatBoost) |
-| 06 | Complément | Simulation SGS non-stationnaire (clustering par Landuse) |
-
-**Volet Or** (`src/notebooks/gold_td6/`, TD6, 3 exercices indépendants) : variogramme 1D (prix de l'or), variogramme 2D sur grille image, krigeage/simulation sur nuage de points.
-
----
-
-## Installation
-
-```bash
-python -m venv venv
-venv\Scripts\activate        # Windows
-pip install -r requirements.txt
-```
-
-> *note* : `numpy<2.0` obligatoire — `gstatsim` (notebook 06) est incompatible avec NumPy 2.x.
-
----
-
-## Exécution
-
-- **Volet Jura** : lancer dans l'ordre 01 → 06 (le notebook 05 dépend de `rmse_krigeage.json`, généré par le notebook 04).
-- **Volet Or** : les 3 exercices sont indépendants.
-
----
 
 ## Tests
 
@@ -77,16 +64,6 @@ pytest tests/ -v
 ```
 
 ---
-
-## Bibliothèques principales
-
-pandas, numpy (`<2.0`), matplotlib, ipywidgets, **gstlearn** (géostatistique), **scikit-gstat** + **gstatsim** (notebook 06), **scikit-learn**, **xgboost**, **catboost** (notebook 05), pytest.
-
----
-
-## Auteur
-
-**RAZIK OUMAYMA** — Master 2 Géologie Numérique, ENSG.
 
 ## Sources principales
 

@@ -1,31 +1,38 @@
 # Notebooks Jupyter en Python pour le cours de Géostatistique ENSG
 
-*Auteurs: Oumayma Razik, Guillaume Caumon*
+*Auteurs: Oumayma Razik, Guillaume Caumon*, Amandine Fratani
 
 Ce dépôt propose des exercices pour les TDs de 2eme année à l'ENSG en géostatistique. 
 Il s'appuie sur la bibliothèque [gstlearn](https://gstlearn.org/). Il complémente les TDs existants sur AspenSKUA.
 
 ## Installation
 
-Il est recommandé de créer un environnement virtuel python incluant les dépendances. 
+Il est recommandé de créer un environnement virtuel python incluant les dépendances.
 
-Pour cela lancer PyCharm, puis ouvrir le répertoire courant. Aller dans `Setting.. > Python > Interpreter`, puis sélectionner 
+Après s'être assuré d'avoir installé uv, il est possible de créer l'environnement virtuel en cliquant sur le Start_Geostat_Win.bat sur Windows.
+
+Une autre possibilité est de créer l'environnement au sein de PyCharm.
+Aller dans `Setting.. > Python > Interpreter`, puis sélectionner 
 `Add Interpreter > Add Local Interpreter`. Une boîte de dialogue s'ouvre. 
-Il faut générer un nouvel environnement (`Generate New`), de type `uv` (le plus rapide), et choisir le répertoire courant. 
+Il faut générer un nouvel environnement (`Generate New`), de type `uv` (le plus rapide) en python 3.13.* ou 3.14.*, et choisir le répertoire courant. 
 Puis, ouvrir un terminal et lancer 
 ```
-uv pip install -r requirements.txt
+uv sync
 ```
  
-
 Cela peut se également se faire sous Linux ou Windows en ligne de commande: 
 
 ```
-uv venv                     # Ou: python -m venv .venv
-.venv\Scripts\activate      # Windows
-uv pip install -r requirements.txt
-jupyter-notebook.exe 
+uv venv -p3.13 .venv
+.venv\Scripts\activate
+uv sync
 ```
+
+Afin de bien initialiser l'environnement pour les notebooks, il est recommander d'ajouter la ligne de commande suivante (à condition que l'environnement virtuel soit activé):
+```
+python -m ipykernel install --user --name=monenv --display-name "Python Geostat"
+```
+
 
 ## TD6
 
@@ -37,13 +44,16 @@ jupyter-notebook.exe
 ```
 TD6-GEOSTAT-PFE-GN-ENSG/
 ├── data/                       # Les fichiers de données
-├── geostat_utils/              # package d'utilitaires python (io, variogram, kriging, simulation)
+├── src/
+|    └── geostat_utils/              # package d'utilitaires python (io, variogram, kriging, simulation)
 ├── start.ipynb                 # Le Notebook de démarrage
 ├── TD*/
 │    └── *.ipynb                # Notebooks python pour les TDs
 ├── tests/test_geostat_utils.py # Tests
 ├── requirements.txt
 └── README.md
+└── Pyproject.toml              # Fichier qui contient la configuration de l'environnement virtuel
+└── Start_Geostat_Win.bat       # Créer un environnement virtuel 
 ```
 
 ### Package `geostat_utils`

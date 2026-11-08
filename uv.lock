@@ -513,6 +513,11 @@ dependencies = [
     { name = "xgboost" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "nb-clean" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "catboost", specifier = ">=1.2.10" },
@@ -529,6 +534,9 @@ requires-dist = [
     { name = "scikit-learn", specifier = ">=1.9.0" },
     { name = "xgboost", specifier = ">=3.3.0" },
 ]
+
+[package.metadata.requires-dev]
+dev = [{ name = "nb-clean", specifier = ">=6.0.0" }]
 
 [[package]]
 name = "graphviz"
@@ -1232,6 +1240,18 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/67/43/e11d75a7fb635c6f63dd6e176cb3e050ec2fee35f2f2267b332a6ad351ec/narwhals-2.28.0.tar.gz", hash = "sha256:2d9860c80d6610820826e94c6e42ce4b1d92d89cdd479586e652a8d211dab345", size = 754977, upload-time = "2026-10-27T12:19:33.777Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/cf/82/8ef9c7e0f50493307a49c09cfa7f00c5a778b6d1921f7b2dabe1d3a5809e/narwhals-2.28.0-py3-none-any.whl", hash = "sha256:1f69d6385ec30e2fa6e1fdeb37c562ecabd0f713f6f3e3b58a668c5c9df9567f", size = 490591, upload-time = "2026-10-27T12:19:31.649Z" },
+]
+
+[[package]]
+name = "nb-clean"
+version = "6.0.0"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/22/3b/ddf853fcb3028fa389279fc03f226177ba3882d7b38cd9d48dd2e714d4c9/nb_clean-6.0.0-py3-none-macosx_10_12_x86_64.whl", hash = "sha256:a789d07b8a01b91f5dba9de5fbe5a97e56af0d3f9c3bcef593cd90fca5dc1dc2", size = 1138197, upload-time = "2026-11-02T08:21:21.673Z" },
+    { url = "https://files.pythonhosted.org/packages/29/31/b9dae5fe0c55f8eface6703d8f9b3db9627a218d05d10b805ac87f682012/nb_clean-6.0.0-py3-none-macosx_11_0_arm64.whl", hash = "sha256:66539bfbd8597ecf9380cb1d40c42e4d6bb38becce680e23fdec367ee272a6b7", size = 1071100, upload-time = "2026-11-02T08:21:23.527Z" },
+    { url = "https://files.pythonhosted.org/packages/60/78/e95165634bd8494be258e901bec3a878c98507394007deb99764157fa94c/nb_clean-6.0.0-py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:60c34f6e29157f84b718cc1f905f9f7b07a88e0fab70726c96d27ef8b7523985", size = 1090579, upload-time = "2026-11-02T08:21:25.226Z" },
+    { url = "https://files.pythonhosted.org/packages/bb/f8/8c254499ac68d02d190f32fad87bdac3288f464dc89b83b23f4f5267b783/nb_clean-6.0.0-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:088108b14dfc57df59e1fe0f9fcabf44bf402082fb7f4a399e9f8ea3acf0a59e", size = 1186299, upload-time = "2026-11-02T08:21:26.658Z" },
+    { url = "https://files.pythonhosted.org/packages/54/25/fbef6225b3fc17364479148b60ed7962bfff295b2b8830006aeefd7cbca1/nb_clean-6.0.0-py3-none-win_amd64.whl", hash = "sha256:f761e9539c7bdd5321a368a29a64e7c9674fa10fffb96f39a47de07ecfb6db9a", size = 1100006, upload-time = "2026-11-02T08:21:28.23Z" },
 ]
 
 [[package]]

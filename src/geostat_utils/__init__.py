@@ -17,11 +17,11 @@ Tous les noms sont ré-exportés ici pour simplifier l'usage et appeler directem
 """
 __version__ = "0.0.2"
 
-from .io import (
+from geostat_utils.io import (
     ResultsDir,
     charger_donnees,
     charger_donnees_jura,
-    creer_db_gstlearn,
+    create_gstlearn_db,
     filtrer_valeurs_aberrantes,
     anamorphose_gaussienne,
     preparer_db_gaussienne_jura,
@@ -31,17 +31,17 @@ from .io import (
     charger_resultats_krigeage,
 )
 
-from .variogram import (
+from geostat_utils.variogram import (
     plot_1D_variogram,
     InteractiveVariogramFit
 )
 
-from .kriging import (
+from geostat_utils.kriging import (
     krigeage_sk_ok_uk,
     creer_widget_cartes_krigeage,
 )
 
-from .simulation import (
+from geostat_utils.simulation import (
     simulation_bandes_tournantes,
     creer_widget_realisations,
     creer_widget_realisations_avec_seuil,
@@ -51,7 +51,7 @@ from .simulation import (
 __all__ = [
     "charger_donnees",
     "charger_donnees_jura",
-    "creer_db_gstlearn",
+    "create_gstlearn_db",
     "filtrer_valeurs_aberrantes",
     "anamorphose_gaussienne",
     "preparer_db_gaussienne_jura",
